@@ -1,0 +1,14 @@
+---
+version: '3.6'
+services:
+  ipfs:
+    image: 'ipfs/kubo:latest'
+    container_name: ipfs
+    volumes:
+      - /path/to/export:/export  # optional
+      - /path/to/ipfs/data:/data/ipfs
+    ports:
+      - '4001:4001'      # This port should be accessible externally
+      - '4001:4001/udp'  # This port should be accessible externally
+      - '8080:8080'
+      - '5001:5001'  # This admin port should NOT be externally accessible
