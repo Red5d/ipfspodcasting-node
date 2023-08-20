@@ -26,6 +26,14 @@ class IPFSNode:
     def ls(self, hash):
         # List hash data fro a content item in IPFS
         res = self._request('ls?arg='+hash)
+
+    def cat(self, path):
+        # Get content of file in IPFS
+        try:
+            res = self._request('cat?arg='+path)
+            return res.content
+        except:
+            return None
     
     def pin_add(self, hash):
         # Pin hash to IPFS node
@@ -86,20 +94,27 @@ class IPFSPodcasting:
         # Send report of actions taken back to IPFSPodcasting.net
         res = requests.post("https://IPFSPodcasting.net/Response", timeout=120, data=payload)
         return res.text
-    
+
+
 def download_url(url):
     # Download file from url, retrying once if necessary
     try:
-        file = requests.get(url, timeout=120).content
+        file = requests.get(url, timeout=120)
+        if len(file.content) != int(file.headers['Content-Length']):
+            logging.error(f"File size mismatch (DL: {len(file.content)} vs Expected: {file.headers['Content-Length']}) for {url}")
+            raise ValueError('File size mismatch')
     except:
         try:
             # Retry
-            file = requests.get(url, timeout=120).content
+            file = requests.get(url, timeout=120)
+            if len(file.content) != int(file.headers['Content-Length']):
+                logging.error(f"File size mismatch (DL: {len(file.content)} vs Expected: {file.headers['Content-Length']}) for {url}")
+                return None
         except:
             logging.error('Error downloading ' + url)
             return None
         
-    return file
+    return file.content
 
 
 if __name__ == '__main__':
@@ -141,7 +156,13 @@ if __name__ == '__main__':
             logging.info(f"Adding {work['show']} - {work['episode']}: {work['download']}")
 
             # Download file
-            file = download_url(work['download'])
+            if 'ipfs.io/ipfs' in work['download']:
+                # If download url is an IPFS gateway url, use IPFS to download the file
+                ipfs_path = '/'.join(work['download'].split('/')[4:])
+                file = node.cat(ipfs_path)
+            else:
+                file = download_url(work['download'])
+
             if file:
                 # Add file to IPFS
                 hashes = node.add(work['filename'], file)
