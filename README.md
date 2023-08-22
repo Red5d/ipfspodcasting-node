@@ -15,8 +15,6 @@ Ensure that port 4001 on the container is accessible from the Internet, and that
 
 After running the script and/or setting a cron job, check the Manage page for your node at [https://ipfspodcasting.net/Manage](https://ipfspodcasting.net/Manage/Node)
 
-Note: Occasionally, the "Current Status" on the node management page shows "Fail" instead of "Success". This appears to happen when a download fails and is usually resolved next time the script runs. Pretty sure this happens with the original/official script too, so just watch to be sure it goes back to "Success" eventually.
-
 Usage: 
 
     python ipfspodcastnode_update.py [-h] --rpc_url RPC_URL --email EMAIL [--log_file LOG_FILE] [--debug]
