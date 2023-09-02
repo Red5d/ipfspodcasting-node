@@ -24,8 +24,8 @@ class IPFSNode:
         return sum([x['Size'] for x in res.json()['Objects'][0]['Links']])
     
     def ls(self, hash):
-        # List hash data fro a content item in IPFS
-        res = self._request('ls?arg='+hash)
+        # List hash data for a content item in IPFS
+        return self._request('ls?arg='+hash).json()
 
     def cat(self, path):
         # Get content of file in IPFS
@@ -178,14 +178,16 @@ if __name__ == '__main__':
                 logging.info('Error downloading ' + work['download'])
 
         if work['pin'] != '':
-            logging.info('Pinning hash (' + str(work['pin']) + ')')
-            # Pin hash to IPFS
-            pinned = node.pin_add(work['pin'])
+            if work['delete'] != work['pin']:   
+                logging.info('Pinning hash (' + str(work['pin']) + ')')
+                # Pin hash to IPFS
+                pinned = node.pin_add(work['pin'])
 
-            # Get hash values and size of file for reporting back to IPFSPodcasting.net API
-            hashes = node.ls(work['pin'])['Objects']
-            payload['length'] = node.size(pinned)
-            payload['pinned'] = hashes[0]['Hash'] + '/' + work['pin']
+                # Get hash values and size of file for reporting back to IPFSPodcasting.net API
+                logging.info('Checking linked hashes for ' + str(work['pin']))
+                hashes = node.ls(work['pin'])
+                payload['length'] = node.size(pinned)
+                payload['pinned'] = hashes['Objects'][0]['Links'][0]['Hash'] + '/' + work['pin']
 
         if work['delete'] != '':
             logging.info('Deleting hash ' + str(work['delete']))
